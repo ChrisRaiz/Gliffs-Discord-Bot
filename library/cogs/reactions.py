@@ -22,7 +22,7 @@ class Reactions(Cog):
         "💙": self.bot.guild.get_role(1317132621070991370), # Blue Role
         "💜": self.bot.guild.get_role(1317132675555000402), # Purple Role
       }
-      self.reaction_message = await self.bot.get_channel(1310012816979263659).fetch_message(1317131968365985912)
+      self.reaction_message = await self.bot.get_channel(1317131883422683236).fetch_message(1317131968365985912)
       self.starboard_channel = self.bot.get_channel(1317131532707823786) # Starboard Text Channel
       self.bot.cogs_ready.ready_up("reactions")
 

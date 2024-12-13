@@ -229,11 +229,13 @@ class Fun(Cog):
           if cmd in self.gamble_cmds[1][2:4] and message.author.display_name in self.session_users:
             self.session_users.remove(message.author.display_name)
           self.gamble_users.remove(message.author.display_name)
+          
+        await message.delete()
 
       elif len(self.gamble_users) == 25:
         await message.channel.send(f"Sorry {message.author.mention}, the current round has hit the maximum capacity of 25 gamblers.", delete_after=10)
+        await message.delete()
 
-      await message.delete()
 
   @Cog.listener()
   async def on_ready(self):

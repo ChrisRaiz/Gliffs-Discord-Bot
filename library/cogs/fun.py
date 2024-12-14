@@ -140,11 +140,6 @@ class Fun(Cog):
         gamble_embed = Embed(title=f":game_die: {gamble_cap:,}g Gamble rolls",
                             color=0x35654D,
                             timestamp=datetime.now())
-        
-        i = 0
-        while i < 8:
-          self.gamble_users.append(f"Fake User {i}")
-          i += 1
 
         if len(self.gamble_users) <= 1:
           await ctx.send(embed=Embed(title=":stop_sign: Not enough members to gamble! Shutting down gambling session.", color=0xB03060), delete_after=10)
@@ -229,7 +224,7 @@ class Fun(Cog):
           if cmd in self.gamble_cmds[1][2:4] and message.author.display_name in self.session_users:
             self.session_users.remove(message.author.display_name)
           self.gamble_users.remove(message.author.display_name)
-          
+
         await message.delete()
 
       elif len(self.gamble_users) == 25:

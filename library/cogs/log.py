@@ -72,7 +72,7 @@ class Log(Cog):
 
     elif before.roles != after.roles:
       embed = Embed(title="Role updates",
-                    description={after.display_name},
+                    description=after.display_name,
                     color=after.color,
                     timestamp=datetime.utcnow())
       

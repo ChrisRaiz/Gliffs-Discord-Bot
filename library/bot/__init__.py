@@ -85,7 +85,7 @@ class Bot(BotBase):
     asyncio.run(self.setup())
 
     # with open('./library/bot/token.0', 'r', encoding='utf-8') as token_file:
-    self.TOKEN = os.environ['DISCORD_BOT_TOKEN_SECRET']
+    self.TOKEN = os.environ['DISCORD_BOT_TOKEN']
 
     print("Running bot...")
     super().run(self.TOKEN, reconnect=True)

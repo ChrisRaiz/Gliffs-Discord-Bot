@@ -195,14 +195,15 @@ class Fun(Cog):
         gamble_cap = gamble_cap + increments
         rounds -= 1
 
-      owed_embed = Embed(title='Gold payouts', color=0xFFEB80)
-      owed_thumbnail = File('./data/images/gold-icon.jpg')
-      owed_embed.set_thumbnail(url='attachment://gold-icon.jpg')
+      if rounds == 0:
+        owed_embed = Embed(title='Gold payouts', color=0xFFEB80)
+        owed_thumbnail = File('./data/images/gold-icon.jpg')
+        owed_embed.set_thumbnail(url='attachment://gold-icon.jpg')
 
-      for payout in gold_owed:
-        owed_embed.add_field(name=payout, value="", inline=False)
+        for payout in gold_owed:
+          owed_embed.add_field(name=payout, value="", inline=False)
 
-      await ctx.send(file=owed_thumbnail, embed=owed_embed)
+        await ctx.send(file=owed_thumbnail, embed=owed_embed)
 
       self.gamble_users, self.session_users, self.gamble_channel = [], [], None
 

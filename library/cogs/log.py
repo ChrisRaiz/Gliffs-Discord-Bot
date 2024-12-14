@@ -100,19 +100,20 @@ class Log(Cog):
   @Cog.listener()
   async def on_message_delete(self, message):
     if not message.author.bot:
-      embed = Embed(title="Message deletion",
-                    description=f"Deleted by {message.author.display_name}.",
-                    color=message.author.color,
-                    timestamp=datetime.utcnow())
-      
-      if len(message.content) > 0:
-        embed.add_field(name="**Deleted message**", value=message.content, inline=False)
-      if any([hasattr(a, "width") for a in message.attachments]):
-        url = [a for a in message.attachments if(hasattr(a, "width"))][0].url
-        embed.add_field(name="**Deleted attachment**", value="", inline=False)
-        embed.set_image(url=url)
+      if message.content not in ["jr", "1", "lr", "0", "js", "3", "ls", "2"]:
+        embed = Embed(title="Message deletion",
+                      description=f"Deleted by {message.author.display_name}.",
+                      color=message.author.color,
+                      timestamp=datetime.utcnow())
+        
+        if len(message.content) > 0:
+          embed.add_field(name="**Deleted message**", value=message.content, inline=False)
+        if any([hasattr(a, "width") for a in message.attachments]):
+          url = [a for a in message.attachments if(hasattr(a, "width"))][0].url
+          embed.add_field(name="**Deleted attachment**", value="", inline=False)
+          embed.set_image(url=url)
 
-      await self.log_channel.send(embed=embed)
+        await self.log_channel.send(embed=embed)
 
 async def setup(bot):
   await bot.add_cog(Log(bot))

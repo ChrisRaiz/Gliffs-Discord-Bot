@@ -120,21 +120,20 @@ class Fun(Cog):
       
       sign_up_fields = [("**Round cmds**", "> **Join:** `jr` | `1`\n> **Exit:** `lr` | `0`", True),
                         ("**Session cmds**", "> **Join:** `js` | `3`\n> **Exit:** `ls` | `2`", True)]
-                        # ('\u200b', "‏‏‎              ‎", True)]
       
       for name, value, inline in sign_up_fields:
         sign_up_embed.add_field(name=name, value=value, inline=inline)
 
-      await ctx.send(embed=session_embed,) #delete_after=start_time+5)
+      await ctx.send(embed=session_embed, delete_after=start_time+5)
 
       while rounds:
         self.signup_active = True
-        await ctx.send(embed=sign_up_embed,) #delete_after=start_time+5)
+        await ctx.send(embed=sign_up_embed, delete_after=start_time+5)
         await sleep(start_time)
         await ctx.send(embed=Embed(title=":loudspeaker: Last call to enter!", color=0xB03060), delete_after=8)
         await sleep(8)
         self.signup_active = False
-        await ctx.send(embed=Embed(title=f":loudspeaker: Signups for the {gamble_cap:,}g gamble session has closed!", color=0xB03060), delete_after=8)
+        await ctx.send(embed=Embed(title=f":loudspeaker: Entries for the {gamble_cap:,}g gamble session has closed!", color=0xB03060), delete_after=8)
         await sleep(8)
 
         gamble_embed = Embed(title=f":game_die: {gamble_cap:,}g Gamble rolls",
@@ -162,8 +161,8 @@ class Fun(Cog):
                           timestamp=datetime.now())
         
 
-        # winner_avatar = self.bot.guild.get_member_named(winner[0]).display_avatar
-        # res_embed.set_thumbnail(url=winner_avatar)
+        winner_avatar = self.bot.guild.get_member_named(winner[0]).display_avatar
+        res_embed.set_thumbnail(url=winner_avatar)
         res_embed.set_footer(text=f"{rounds-1} rounds remaining" if rounds != 2 else f"{rounds-1} round remaining")
 
         res_fields = [("Winner", winner[0], True),
@@ -179,12 +178,12 @@ class Fun(Cog):
 
         await ctx.send(embed=gamble_embed, delete_after=60)
         await ctx.send(embed=Embed(title=f"\📢 and the winner of the {gamble_cap} gold round is...", color=0xB03060), delete_after=5)
-        # await sleep(5)
+        await sleep(5)
         await ctx.send(embed=Embed(title=f"\📢 and the winner of the {gamble_cap} gold round is {winner[0]}!", color=0xB03060), delete_after=8)
         await ctx.send(embed=res_embed)
-        # await sleep(8)
+        await sleep(8)
         await ctx.send(embed=Embed(title="\📢 The next round signup will start in 5 seconds!", color=0xB03060), delete_after=5) if rounds-1 > 0 else None
-        # await sleep(5)
+        await sleep(5)
         print(f'BEFORE\nGamble_users: {self.gamble_users} | session_users: {self.session_users}')
         self.gamble_users = []
 

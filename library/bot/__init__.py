@@ -1,7 +1,9 @@
-# from datetime import datetime
+from datetime import datetime
 import asyncio
+import os
 from glob import glob
 from datetime import datetime
+
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
@@ -82,8 +84,8 @@ class Bot(BotBase):
     print("Running setup ... ...")
     asyncio.run(self.setup())
 
-    with open('./library/bot/token.0', 'r', encoding='utf-8') as token_file:
-      self.TOKEN = token_file.read()
+    # with open('./library/bot/token.0', 'r', encoding='utf-8') as token_file:
+    self.TOKEN = os.environ['DISCORD_BOT_TOKEN_SECRET']
 
     print("Running bot...")
     super().run(self.TOKEN, reconnect=True)

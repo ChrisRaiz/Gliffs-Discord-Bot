@@ -100,7 +100,8 @@ class Log(Cog):
   @Cog.listener()
   async def on_message_delete(self, message):
     if not message.author.bot:
-      if message.content not in ["jr", "1", "lr", "0", "js", "3", "ls", "2"]:
+      if (message.content not in ["jr", "1", "lr", "0", "js", "3", "ls", "2"]
+          and "!echo" not in message.content[0:5]):
         embed = Embed(title="Message deletion",
                       description=f"Deleted by {message.author.display_name}.",
                       color=message.author.color,

@@ -82,6 +82,7 @@ class Meta(Cog):
     await ctx.send(embed=embed)
 
   @command(name="shutdown", description="Shutdown the discord bot.")
+  @has_permissions(administrator=True)
   async def shutdown(self, ctx):
     await ctx.send("Shutting down...")
 

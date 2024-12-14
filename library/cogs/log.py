@@ -56,8 +56,11 @@ class Log(Cog):
   async def on_member_update(self, before, after):
     if before.display_name != after.display_name:
       embed = Embed(title="Nickname change",
+                    description=after.display_name,
                     color=after.color,
                     timestamp=datetime.utcnow())
+      
+      embed.set_thumbnail(url=after.display_avatar)
       
       fields = [("Before", before.display_name, False),
                 ("After", after.display_name, False)]
@@ -69,8 +72,11 @@ class Log(Cog):
 
     elif before.roles != after.roles:
       embed = Embed(title="Role updates",
+                    description={after.display_name},
                     color=after.color,
                     timestamp=datetime.utcnow())
+      
+      embed.set_thumbnail(url=after.display_avatar)
       
       fields = [("Before", ", ".join([r.mention for r in before.roles]), False),
                 ("After", ", ".join([r.mention for r in after.roles]), False)]
@@ -89,7 +95,8 @@ class Log(Cog):
                       color=after.author.color,
                       timestamp=datetime.utcnow())
         
-        fields = [("Before", before.content, False),
+        fields = [("Member", before.author, False),
+                  ("Before", before.content, False),
                   ("After", after.content, False)]
         
         for name, value, inline in fields:

@@ -4,12 +4,10 @@ from os.path import isfile
 from psycopg2 import connect, OperationalError
 
 BUILD_PATH = "./data/db/build.sql"
+DATABASE_URL = environ['DATABASE_URL']
 
-conn = connect(database = environ["DB_DATABASE"],
-               user = environ["DB_USER"],
-               host = environ["DB_HOST"],
-               password = environ["DB_PASS"],
-               port = environ["DB_PORT"])
+
+conn = connect(DATABASE_URL, sslmode="require")
 
 cur = conn.cursor()
 

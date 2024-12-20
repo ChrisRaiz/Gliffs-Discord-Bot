@@ -1,9 +1,7 @@
 from apscheduler.triggers.cron import CronTrigger
 from os import environ
-from os.path import isfile
-from psycopg2 import connect, OperationalError
+from psycopg2 import connect, OperationalError, DatabaseError
 
-BUILD_PATH = "./data/db/build.sql"
 DATABASE_URL = environ['DATABASE_URL']
 
 conn = connect(DATABASE_URL)
@@ -23,8 +21,37 @@ def commit():
 @with_commit
 def build():
   print('Build() execution start')
-  if isfile(BUILD_PATH):
-    script_execute(BUILD_PATH)
+
+  tables = (
+          """CREATE TABLE IF NOT EXISTS guilds(
+            guild_id BIGINT UNIQUE PRIMARY KEY,
+            prefix VARCHAR (5) DEFAULT '!');""",
+          """CREATE TABLE IF NOT EXISTS exp(
+            user_id BIGINT UNIQUE PRIMARY KEY,
+            xp INTEGER DEFAULT 0,
+            level SMALLINT DEFAULT 0,
+            xp_lock TIMESTAMP DEFAULT CURRENT_TIMESTAMP);""",
+          """CREATE TABLE IF NOT EXISTS mutes(
+            user_id BIGINT UNIQUE PRIMARY KEY,
+            role_ids TEXT NOT NULL,
+            end_time TIMESTAMP);""",
+          """CREATE TABLE IF NOT EXISTS starboard(
+            root_message_id BIGINT UNIQUE PRIMARY KEY,
+            star_message_id BIGINT UNIQUE NOT NULL,
+            stars INTEGER DEFAULT 1);""",
+          """CREATE TABLE IF NOT EXISTS polls(
+            poll_message_id BIGINT UNIQUE PRIMARY KEY,
+            channel_id BIGINT NOT NULL,
+            question TEXT NOT NULL);"""
+  )    
+
+  try:
+    for table in tables:
+        cur.execute(table)
+    conn.commit()
+  except (Exception, DatabaseError) as error:
+      print(error)
+
   print('Build() execution end')
 
 def script_execute(path):

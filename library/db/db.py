@@ -1,13 +1,17 @@
-from os.path import isfile
-from sqlite3 import connect, OperationalError
-
 from apscheduler.triggers.cron import CronTrigger
+from os import environ
+from os.path import isfile
+from psycopg2 import connect, OperationalError
 
-DB_PATH = "./data/db/database.db"
 BUILD_PATH = "./data/db/build.sql"
 
-cxn = connect(DB_PATH, check_same_thread=False)
-cursor = cxn.cursor()
+conn = connect(database = environ["DB_DATABASE"],
+               user = environ["DB_USER"],
+               host = environ["DB_HOST"],
+               password = environ["DB_PASS"],
+               port = environ["DB_PORT"])
+
+cur = conn.cursor()
 
 def with_commit(func):
 	def inner(*args, **kwargs):
@@ -15,7 +19,10 @@ def with_commit(func):
 		commit()
 
 	return inner
-  
+
+def commit():
+  conn.commit()
+
 @with_commit
 def build():
   print('Build() execution start')
@@ -23,50 +30,46 @@ def build():
     script_execute(BUILD_PATH)
   print('Build() execution end')
 
-def commit():
-  cxn.commit()
+def script_execute(path):
+  cur.execute(open(path, "r", encoding="utf-8").read())
 
 def autosave(sched):
 	sched.add_job(commit, CronTrigger(second=0))
-  
+   
 def close():
-  cxn.close()
+  cur.close()
 
 def field(command, *values):
-  cursor.execute(command, tuple(values))
+  cur.execute(command, tuple(values))
 
-  if (fetch := cursor.fetchone()) is not None:
+  if (fetch := cur.fetchone()) is not None:
     return fetch[0]
-
+  
 def record(command, *values):
-  cursor.execute(command, tuple(values))
+  cur.execute(command, tuple(values))
 
-  return cursor.fetchone()
+  return cur.fetchone()
 
 def records(command, *values):
-  cursor.execute(command, tuple(values))
+  cur.execute(command, tuple(values))
 
-  return cursor.fetchall()
+  return cur.fetchall()
 
 def column(command, *values):
-  cursor.execute(command, tuple(values))
+  cur.execute(command, tuple(values))
 
-  return [item[0] for item in cursor.fetchall()]
+  return [item[0] for item in cur.fetchall()]
 
 def execute(command, *values):
-  cursor.execute(command, tuple(values))
+  cur.execute(command, tuple(values))
 
 def multi_execute(command, valueset):
-  cursor.executemany(command, valueset)
-
-def script_execute(path):
-  with open(path, "r", encoding="utf-8") as script:
-    cursor.executescript(script.read())
+  cur.executemany(command, valueset)
 
 def fetch_polls():
   try:
     polls =  {}
-    rows = records("SELECT Question, MessageID, ChannelID FROM polls")
+    rows = records("SELECT * FROM polls;")
     for row in rows:
         polls[row[0]] = (row[1], row[2])
     return polls

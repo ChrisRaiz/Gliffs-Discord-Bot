@@ -6,7 +6,7 @@ from psycopg2 import connect, OperationalError
 BUILD_PATH = "./data/db/build.sql"
 DATABASE_URL = environ['DATABASE_URL']
 
-conn = connect(DATABASE_URL, sslmode="require")
+conn = connect(DATABASE_URL)
 
 cur = conn.cursor()
 

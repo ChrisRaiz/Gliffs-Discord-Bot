@@ -1,29 +1,29 @@
 CREATE TABLE IF NOT EXISTS guilds (
-	GuildID integer PRIMARY KEY,
-	Prefix text DEFAULT "!"
+	guild_id BIGINT PRIMARY KEY,
+	prefix VARCHAR (5) DEFAULT "!"
 );
 
 CREATE TABLE IF NOT EXISTS exp (
-	UserID integer PRIMARY KEY,
-	XP integer DEFAULT 0,
-	Level integer DEFAULT 0,
-	XPLock text DEFAULT CURRENT_TIMESTAMP
+	user_id BIGINT PRIMARY KEY,
+	xp INTEGER DEFAULT 0,
+	level SMALLINT DEFAULT 0,
+	xp_Lock TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS mutes (
-	UserID integer PRIMARY KEY,
-	RoleIDs text,
-	EndTime text
+	user_id BIGINT PRIMARY KEY,
+	role_ids TEXT,
+	end_time TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS starboard (
-	RootMessageID integer PRIMARY KEY,
-	StarMessageID integer,
-	Stars integer DEFAULT 1
+	root_message_id BIGINT PRIMARY KEY,
+	star_message_id BIGINT UNIQUE,
+	stars INTEGER DEFAULT 1
 );
 
 CREATE TABLE IF NOT EXISTS polls (
-	MessageID integer PRIMARY KEY,
-	ChannelID integer,
-	Question text
-)
+	poll_message_id BIGINT PRIMARY KEY,
+	poll_channel_id BIGINT NOT NULL,
+	question TEXT NOT NULL UNIQUE
+);

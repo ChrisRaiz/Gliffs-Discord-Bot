@@ -16,7 +16,7 @@ class Welcome(Cog):
   
   @Cog.listener()
   async def on_member_join(self, member):
-    db.execute("INSERT INTO exp (UserID) VALUES (?)", member.id)
+    db.execute("INSERT INTO exp (user_id) VALUES (%s)", member.id)
     await self.welcome_channel.send(f"Welcome {member.mention} to **{member.guild.name}**! Head over to <#1066416009197662341> to say hi!")
 
     try:
@@ -29,7 +29,7 @@ class Welcome(Cog):
 
   @Cog.listener()
   async def on_member_remove(self, member):
-    db.execute("DELETE FROM exp WHERE UserID = ?", member.id)
+    db.execute("DELETE FROM exp WHERE user_id = (%s)", member.id)
     await self.goodbye_channel.send(f"{member.display_name} has left **{member.guild.name}**.")
 
 

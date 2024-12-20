@@ -21,7 +21,7 @@ COGS = [path.split("/")[-1][:-3] for path in glob("library/cogs/*.py")]
 IGNORE_EXCEPTIONS = (CommandNotFound, BadArgument)
 
 def get_prefix(bot, message):
-  prefix = db.field("SELECT Prefix FROM guilds WHERE GuildID = ?", message.guild.id)
+  prefix = db.field("SELECT prefix FROM guilds WHERE guild_id = (%s)", message.guild.id)
 
   return when_mentioned_or(prefix)(bot, message)
 
@@ -60,20 +60,25 @@ class Bot(BotBase):
       print("Setup complete!!")
 
   def update_db(self):
-    db.multi_execute("INSERT OR IGNORE INTO guilds (GuildID) VALUES (?)", 
-                    ((guild.id,) for guild in self.guilds))
+    db.multi_execute('''INSERT INTO guilds (guild_id)
+                        VALUES (%s)
+                        ON CONFLICT (guild_id) DO NOTHING''', 
+                      ((guild.id,) for guild in self.guilds),
+                    )
     
-    db.multi_execute("INSERT OR IGNORE INTO exp (UserID) VALUES (?)",
+    db.multi_execute('''INSERT INTO exp (user_id)
+                        VALUES (%s)
+                        ON CONFLICT (user_id) DO NOTHING''',
                      ((member.id,) for member in self.guild.members if not member.bot))
     
     to_remove = []
-    stored_members = db.column("SELECT UserID from exp")
+    stored_members = db.column("SELECT user_id from exp")
 
     for _id in stored_members:
       if not self.guild.get_member(_id):
         to_remove.append(_id)
 
-    db.multi_execute("DELETE FROM exp WHERE UserID = ?", 
+    db.multi_execute("DELETE FROM exp WHERE UserID = (%s)", 
                      ((_id,) for _id in to_remove))
     
     db.commit()
@@ -84,8 +89,10 @@ class Bot(BotBase):
     print("Running setup ... ...")
     asyncio.run(self.setup())
 
-    # with open('./library/bot/token.0', 'r', encoding='utf-8') as token_file:
-    self.TOKEN = os.environ['DISCORD_BOT_TOKEN']
+    with open('./library/bot/token.0', 'r', encoding='utf-8') as token_file:
+      self.TOKEN = token_file.read()
+      
+    # self.TOKEN = os.environ['DISCORD_BOT_TOKEN']
 
     print("Running bot...")
     super().run(self.TOKEN, reconnect=True)
@@ -141,7 +148,6 @@ class Bot(BotBase):
       self.err_channel = self.get_channel(1317129986636775574) # Bot-Errors Text Channel
       self.scheduler.add_job(self.rules_reminder, CronTrigger(day_of_week = 0, hour = 12, minute = 0, second = 0)) # Send timed message
       self.scheduler.start()
-
       self.update_db()
 
       while not self.cogs_ready.all_ready():

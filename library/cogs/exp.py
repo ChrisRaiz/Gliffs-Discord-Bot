@@ -45,16 +45,16 @@ class Exp(Cog):
     self.bot = bot
 
   async def process_exp(self, message):
-    xp, lvl, xplock = db.record("SELECT XP, Level, XPLock FROM exp WHERE UserID = ?", message.author.id)
+    xp, lvl, xplock = db.record("SELECT xp, level, xp_lock FROM exp WHERE user_id = (%s)", message.author.id)
 
-    if datetime.utcnow() > datetime.fromisoformat(xplock):
+    if datetime.utcnow() > datetime.fromisoformat(str(xplock)):
       await self.add_xp(message, xp, lvl)
 
   async def add_xp(self, message, xp, lvl):
     xp_gain = int(ceil(randint(10, 20)))
     new_lvl = int(((xp+xp_gain)//42) ** 0.55)
 
-    db.execute("UPDATE exp SET XP = XP + ?, Level = ?, XPLock = ? WHERE UserID = ?", 
+    db.execute("UPDATE exp SET xp = xp + (%s), level = (%s), xp_lock = (%s) WHERE user_id = (%s)", 
                xp_gain, new_lvl, (datetime.utcnow()+timedelta(seconds=60)).isoformat(), message.author.id)
     
     if new_lvl > lvl:
@@ -63,7 +63,7 @@ class Exp(Cog):
   @command(name="level", aliases=["lvl"], description="Check a member's level.")
   async def display_level(self, ctx, target: Optional[Member]):
     target = target or ctx.author
-    xp, lvl = db.record("SELECT XP, Level FROM exp WHERE UserID = ?", target.id) or (None, None)
+    xp, lvl = db.record("SELECT xp, level FROM exp WHERE user_id = (%s)", target.id) or (None, None)
 
     if lvl is not None:
       await ctx.send(f"{target.display_name} is level {lvl:,} with {xp:,} XP.")
@@ -75,7 +75,7 @@ class Exp(Cog):
   async def display_rank(self, ctx, target: Optional[Member]):
     target = target or ctx.author
 
-    ids = db.column("SELECT UserID FROM exp ORDER BY XP DESC")
+    ids = db.column("SELECT user_id FROM exp ORDER BY xp DESC")
     try:
       await ctx.send(f"{target.display_name} is rank {ids.index(target.id)+1} of {len(ids)}.")
 
@@ -84,7 +84,7 @@ class Exp(Cog):
 
   @command(name="leaderboard", aliases=["lb"], description="Display the guild's exp leaderboard.")
   async def display_leaderboard(self, ctx):
-    records = db.records("SELECT UserID, XP, Level FROM exp ORDER BY XP DESC")
+    records = db.records("SELECT user_id, xp, level FROM exp ORDER BY xp DESC")
 
     menu = MenuPages(source=HelpMenu(ctx, records), delete_message_after=True, timeout=300.0)
     await menu.start(ctx)

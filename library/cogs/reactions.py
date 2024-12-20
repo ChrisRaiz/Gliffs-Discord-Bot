@@ -41,7 +41,7 @@ class Reactions(Cog):
 
         for question in inactive_polls:
           del self.polls[question]
-          db.execute("DELETE FROM polls WHERE Question = ?", question)
+          db.execute("DELETE FROM polls WHERE question = (%s)", question)
 
   @command(name="createpoll", aliases=["mkpoll"], description="Create a new poll.")
   @has_permissions(manage_guild=True)
@@ -65,15 +65,15 @@ class Reactions(Cog):
 
         self.polls[poll.question.lower()] = (poll.message.id, poll.message.channel.id)
 
-        db.execute("INSERT INTO polls VALUES (?, ?, ?)",
+        db.execute("INSERT INTO polls VALUES (%s, %s, %s)",
                   message_id, channel_id, poll.question.lower())
         
         self.bot.scheduler.add_job(self.poll_ended, "date", run_date=datetime.now()+timedelta(seconds=hours*3600),
-                                  args=[question.lower()])
+                                  args=[question.lower()], id=question)
         
   async def poll_ended(self, question):
     del self.polls[question]
-    db.execute("DELETE FROM polls WHERE Question = ?", question.lower())
+    db.execute("DELETE FROM polls WHERE question = (%s)", question.lower())
 
   @command(name="endpoll", description="End an active poll.")
   @has_permissions(manage_guild=True)
@@ -88,7 +88,8 @@ class Reactions(Cog):
       message = await channel.fetch_message(message_id)
       await message.poll.end()
       del self.polls[question.lower()]
-      db.execute("DELETE FROM polls WHERE Question = ?", question.lower())
+      self.bot.scheduler.remove_job(question)
+      db.execute("DELETE FROM polls WHERE question = (%s)", question.lower())
 
       await ctx.send(f"The *{question}* poll has been ended. The final results will be printed shortly.", delete_after=10)
  
@@ -119,7 +120,7 @@ class Reactions(Cog):
       message = await self.bot.get_channel(payload.channel_id).fetch_message(payload.message_id)
 
       if not message.author.bot and payload.member.id != message.author.id:
-        msg_id, stars = db.record("SELECT StarMessageID, Stars FROM starboard WHERE RootMessageID = ?",
+        msg_id, stars = db.record("SELECT star_message_id, stars FROM starboard WHERE root_message_id = (%s)",
                                   message.id) or (None, 0)
 
         embed = Embed(title="Starred message",
@@ -138,13 +139,13 @@ class Reactions(Cog):
 
         if not stars:
           star_message = await self.starboard_channel.send(embed=embed)
-          db.execute("INSERT INTO starboard (RootMessageID, StarMessageID) VALUES (?, ?)",
+          db.execute("INSERT INTO starboard (root_message_id, star_message_id) VALUES (%s, %s)",
                      message.id, star_message.id)
         
         else:
           star_message = await self.starboard_channel.fetch_message(msg_id) or "Message no longer exists"
           await star_message.edit(embed=embed)
-          db.execute("UPDATE starboard SET Stars = Stars + 1 WHERE RootMessageID = ?", message.id)
+          db.execute("UPDATE starboard SET stars = stars + 1 WHERE root_message_id = (%s)", message.id)
 
       else:
         await message.remove_reaction(payload.emoji, payload.member)

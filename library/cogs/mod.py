@@ -1,7 +1,7 @@
 import asyncio
 from typing import Optional
 from datetime import datetime, timedelta, timezone
-from better_profanity import profanity
+# from better_profanity import profanity
 from re import search
 
 from discord import Member, Embed
@@ -11,7 +11,7 @@ from discord.ext.commands import command, has_permissions, bot_has_permissions
 
 from ..db import db
 
-profanity.load_censor_words_from_file("./data/profanity.txt")
+# profanity.load_censor_words_from_file("./data/profanity.txt")
 
 class Mod(Cog):
   def __init__(self, bot):
@@ -125,7 +125,7 @@ class Mod(Cog):
           role_ids = ".".join([str(r.id) for r in target.roles])
           end_time = datetime.utcnow() + timedelta(seconds=minutes*60) if minutes else None
 
-          db.execute("INSERT INTO mutes VALUES (?, ?, ?)",
+          db.execute("INSERT INTO mutes VALUES (%s, %s, %s)",
                       target.id, role_ids, getattr(end_time, "isoformat", lambda: None)())
           
           await target.edit(roles=[self.mute_role])
@@ -175,10 +175,10 @@ class Mod(Cog):
   async def unmute_members(self, guild, targets, *, reason = "Mute time expired."):
     for target in targets:
       if self.mute_role in target.roles:
-        role_ids = db.field("SELECT RoleIDs FROM mutes WHERE UserID = ?", target.id)
+        role_ids = db.field("SELECT role_ids FROM mutes WHERE user_id = (%s)", target.id)
         roles = [guild.get_role(int(id_)) for id_ in role_ids.split(".") if len(id_)]
 
-        db.execute("DELETE FROM mutes WHERE UserID = ?", target.id)
+        db.execute("DELETE FROM mutes WHERE user_id = (%s)", target.id)
 
         await target.edit(roles=roles)
 
@@ -212,43 +212,43 @@ class Mod(Cog):
     if isinstance(exc, CheckFailure):
       await ctx.send("Insufficient permissions to perform that task.")  
 
-  @command(name="addprofanity", aliases=["ap"], description="Add terms to the profanity filter.")
-  @has_permissions(manage_guild=True)
-  async def add_profanity(self, ctx, *words):
-    with open("./data/profanity.txt", "a", encoding="utf-8") as f:
-      f.write("\n".join([f"{w}\n" for w in words]))
+  # @command(name="addprofanity", aliases=["ap"], description="Add terms to the profanity filter.")
+  # @has_permissions(manage_guild=True)
+  # async def add_profanity(self, ctx, *words):
+  #   with open("./data/profanity.txt", "a", encoding="utf-8") as f:
+  #     f.write("\n".join([f"{w}\n" for w in words]))
 
-    profanity.load_censor_words_from_file("./data/profanity.txt")
-    await ctx.send("Action complete.")
+  #   profanity.load_censor_words_from_file("./data/profanity.txt")
+  #   await ctx.send("Action complete.")
 
-  @add_profanity.error
-  async def add_profanity_error(self, ctx, exc):
-    if isinstance(exc, CheckFailure):
-      await ctx.send("Insufficient permissions to perform that task.")  
+  # @add_profanity.error
+  # async def add_profanity_error(self, ctx, exc):
+  #   if isinstance(exc, CheckFailure):
+  #     await ctx.send("Insufficient permissions to perform that task.")  
 
-  @command(name="delprofanity", aliases=["dp"], description="Remove terms from the profanity filter.")
-  @has_permissions(manage_guild=True)
-  async def remove_profanity(self, ctx, *words):
-    with open("./data/profanity.txt", "r", encoding="utf-8") as f:
-      stored = [w.strip() for w in f.readlines()]
+  # @command(name="delprofanity", aliases=["dp"], description="Remove terms from the profanity filter.")
+  # @has_permissions(manage_guild=True)
+  # async def remove_profanity(self, ctx, *words):
+  #   with open("./data/profanity.txt", "r", encoding="utf-8") as f:
+  #     stored = [w.strip() for w in f.readlines()]
 
-    with open("./data/profanity.txt", "w", encoding="utf-8") as f:
-      f.write("".join([f"{w}\n" for w in stored if w not in words]))
+  #   with open("./data/profanity.txt", "w", encoding="utf-8") as f:
+  #     f.write("".join([f"{w}\n" for w in stored if w not in words]))
 
-    profanity.load_censor_words_from_file("./data/profanity.txt")
-    await ctx.send("Action complete.")
+  #   profanity.load_censor_words_from_file("./data/profanity.txt")
+  #   await ctx.send("Action complete.")
 
-  @remove_profanity.error
-  async def remove_profanity_error(self, ctx, exc):
-    if isinstance(exc, CheckFailure):
-      await ctx.send("Insufficient permissions to perform that tasks.")
+  # @remove_profanity.error
+  # async def remove_profanity_error(self, ctx, exc):
+  #   if isinstance(exc, CheckFailure):
+  #     await ctx.send("Insufficient permissions to perform that tasks.")
 
   @Cog.listener()
   async def on_ready(self):
     if not self.bot.ready:
       self.log_channel = self.bot.get_channel(1317130812298362920) # Logs Text Channel
       self.mute_role = self.bot.guild.get_role(1317131141714673694) # Mute Role
-      self.profanity_aliases = ["!addprofanity", "!ap", "!delprofanity", "!dp"]
+      # self.profanity_aliases = ["!addprofanity", "!ap", "!delprofanity", "!dp"]
       self.bot.cogs_ready.ready_up("mod")
 
   @Cog.listener()
@@ -267,10 +267,10 @@ class Mod(Cog):
             await asyncio.sleep(5)
             await self.unmute_members(message.guild, [message.author])
 
-      elif profanity.contains_profanity(message.content):
-        if not any(cmd in message.content[0:13] for cmd in self.profanity_aliases):
-          await message.delete()
-          await message.channel.send("That word is not allowed here.", delete_after=10)
+      # elif profanity.contains_profanity(message.content):
+      #   if not any(cmd in message.content[0:13] for cmd in self.profanity_aliases):
+      #     await message.delete()
+      #     await message.channel.send(f"{message.content} | That word is not allowed here.", delete_after=10)
 
       elif message.channel.id in self.links_forbidden and search(self.url_regex, message.content):
         await message.delete()

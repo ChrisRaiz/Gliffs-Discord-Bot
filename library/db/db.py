@@ -4,9 +4,8 @@ from psycopg2 import connect, OperationalError, DatabaseError
 
 DATABASE_URL = environ['DATABASE_URL']
 
-conn = connect(DATABASE_URL)
-
-cur = conn.cursor()
+# conn = connect(DATABASE_URL)
+# cur = conn.cursor()
 
 def with_commit(func):
 	def inner(*args, **kwargs):
@@ -16,12 +15,20 @@ def with_commit(func):
 	return inner
 
 def commit():
-  conn.commit()
+  try:
+    conn = connect(DATABASE_URL)
+
+    conn.commit()
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 @with_commit
 def build():
-  print('Build() execution start')
-
   tables = (
           """CREATE TABLE IF NOT EXISTS guilds(
             guild_id BIGINT UNIQUE PRIMARY KEY,
@@ -44,54 +51,147 @@ def build():
             channel_id BIGINT NOT NULL,
             question TEXT NOT NULL);"""
   )    
-
   try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
+
     for table in tables:
-        cur.execute(table)
+      cur.execute(table)
+
     conn.commit()
+    
   except (Exception, DatabaseError) as error:
-      print(error)
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
   print('Build() execution end')
 
 def script_execute(path):
-  cur.execute(open(path, "r", encoding="utf-8").read())
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
+
+    cur.execute(open(path, "r", encoding="utf-8").read())
+    conn.commit()
+
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def autosave(sched):
 	sched.add_job(commit, CronTrigger(second=0))
    
-def close():
-  cur.close()
+def close(cur):
+  if cur.closed is False:
+    cur.close()
+  else:
+    print("Cursor is already closed!")
 
 def field(command, *values):
-  cur.execute(command, tuple(values))
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
 
-  if (fetch := cur.fetchone()) is not None:
-    return fetch[0]
+    cur.execute(command, tuple(values))
+
+    if (fetch := cur.fetchone()) is not None:
+      return fetch[0]
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
   
 def record(command, *values):
-  cur.execute(command, tuple(values))
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
 
-  return cur.fetchone()
+    cur.execute(command, tuple(values))
+
+    return cur.fetchone()
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def records(command, *values):
-  cur.execute(command, tuple(values))
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
 
-  return cur.fetchall()
+    cur.execute(command, tuple(values))
+
+    return cur.fetchall()
+
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def column(command, *values):
-  cur.execute(command, tuple(values))
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
 
-  return [item[0] for item in cur.fetchall()]
+    cur.execute(command, tuple(values))
+
+    return [item[0] for item in cur.fetchall()]
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def execute(command, *values):
-  cur.execute(command, tuple(values))
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
+
+    cur.execute(command, tuple(values))
+
+    conn.commit()
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def multi_execute(command, valueset):
-  cur.executemany(command, valueset)
+  try:
+    conn = connect(DATABASE_URL)
+    cur = conn.cursor()
+
+    cur.executemany(command, valueset)
+
+    conn.commit()
+    
+  except (Exception, DatabaseError) as error:
+    print(error)
+
+  finally:
+    if conn is not None:
+      conn.close()
 
 def fetch_polls():
-  try:
+  try:    
     polls =  {}
     rows = records("SELECT * FROM polls;")
     for row in rows:

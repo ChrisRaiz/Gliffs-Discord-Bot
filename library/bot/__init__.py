@@ -45,7 +45,7 @@ class Bot(BotBase):
     self.guild = None
     self.scheduler = AsyncIOScheduler()
 
-    db.autosave(self.scheduler)
+    # db.autosave(self.scheduler)
 
     super().__init__(
       command_prefix=get_prefix,
